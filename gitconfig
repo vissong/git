@@ -1,0 +1,29 @@
+# 使用的时候请移动到 ~/.gitconfig
+[user]
+	name = {username}
+	email = {email}
+[core]
+	hooksPath = {git_hooks_path}
+	quotepath = false
+	fileMode = false
+[gui]
+    encoding = utf-8
+[i18n "commit"]
+    encoding = utf-8
+[alias]
+	st = status
+	co = checkout
+	cl = clone 
+	ci = commit
+	br = branch
+	submit = push origin master
+	pu = pull --rebase
+	info = remote -v
+	top = rev-parse --show-toplevel
+	# 寻找分支的 git base 用于整理分支提交与主干进行合并，尽量少的处理冲突次数，如果主干是 main 请自行修改
+	base = !git show-branch --sha1-name --topics $(git rev-parse --abbrev-ref HEAD) master | tail -n 1 | awk '{print $2}' | grep -oE "[0-9a-z]+"
+[pull]
+    # 默认 pull 的行为为 rebase，如果 merge 和 rebase 混用，很容易造成分支和主干的冲突难以处理，所以强制为 rebase 方式拉取合并
+	rebase = true
+[credential]
+	helper = store

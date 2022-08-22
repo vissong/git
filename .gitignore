@@ -1,0 +1,22 @@
+.idea
+.vscode
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Fortran module files
+*.smod
+
+# Executables
+*.exe
+*.out
+*.app
+*.exe
+*.exe~
+
+# Test binary, build with `go test -c`
+*.test
+
+# Log
+*.log
