@@ -16,10 +16,10 @@ auto_append_id() {
   idstr=$(echo "$branch" | grep -oE "(story|bug|test|issue)_([0-9]*)$")
   # 分支名中存在 story 等关键词，自动替换为 --story=xxx
   if [ -n "$idstr" ]; then
-    # new_subject=$(head -n 1 "$1")" --${idstr//_/=}"
-    # sed -i.bak "1s^.*^${new_subject}^" $1 # 使用 ^ 间隔，提交的第一行中不能存在这个符号，否则会导致 sed 失败，story 放在标题上
+    # issue 替换成带 # 格式
+    idstr="${idstr//issue_/issue_#}"
     append_str="--${idstr//_/=}"
-    echo -e "\n$append_str" >> "$1" # story 放在 footer 上
+    echo -e "\n$append_str" >> "$1" # 放在 footer 上
   fi
 }
 
