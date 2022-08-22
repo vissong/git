@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# 获取分支名
+git_branch() {
+    git rev-parse --abbrev-ref HEAD
+}
+
+# 自动给 commit 追加--story, --bug等
+auto_append_id() {
+  checkID=$(cat $1 | grep -E "\-\-(bug|story|task|issue)=(\#)?([0-9])+")
+  if [ -n "$checkID" ]; then
+    return
+  fi
+
+  branch=$(git_branch)
+  idstr=$(echo "$branch" | grep -oE "(story|bug|test|issue)_([0-9]*)$")
+  # 分支名中存在 story 等关键词，自动替换为 --story=xxx
+  if [ -n "$idstr" ]; then
+    # issue 替换成带 # 格式
+    idstr="${idstr//issue_/issue_#}"
+    append_str="--${idstr//_/=}"
+    echo -e "\n$append_str" >> "$1" # 放在 footer 上
+  fi
+}
+
+# 如果未补充git type，自动在message前补充 git type
+# https://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html
+auto_prepend_type() {
+  checkScope=$(cat $1 | grep -E "^.+:\s.+(\s|\S)*")
+  if [ -n "$checkScope" ]; then
+    return
+  fi
+  # shellcheck disable=SC2002
+  checkType=$(cat "$1" | grep -oE "^(feat|fix|docs|style|refactor|test|ci|revert).*:")
+  # commit 中不存在相关关键词，自动补充
+  if [ -n "$checkType" ]; then
+    return
+  fi
+
+  # prepend_str="feat("$(gen_scope)"): "
+  prepend_str="$(gen_scope)"": " # scope add
+  content=$(cat "$1")
+  echo "$prepend_str""$content" > "$1"
+}
+
+# 根据提交的变更，自动生成 scope
+# 先根据 status 变更列表，对于普通目录，直接提取第一层级
+# 对于 pkg 和 app，提取第二层级
+# 去重后排序取修改量最大的做为 scope
+gen_scope(){
+  scope=$(get_change_paths | uniq -c | sort -r | head -1 | awk '{print $2}')
+  echo "$scope"
+}
+
+# 获取修改内容的路径
+get_change_paths(){
+  # 提取已经 git add 的修改内容，并且判断，如果目录层级大于2，则提取二级目录名，否则使用以及目录名或者根目录文件名
+  git status --porcelain | grep -E "^(M|A|D|R|C|U)" | awk '{print $2}' | awk -F/ '{if (NF>2) print $(NF-2)"/"$(NF-1); else print $1}'
+}
+
+auto_prepend_type "$1"
+auto_append_id "$1"
